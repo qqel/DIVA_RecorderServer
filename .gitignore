@@ -1,0 +1,6 @@
+*.user
+*.log
+*logs
+.vs/
+RecorderServer/release
+build*/
