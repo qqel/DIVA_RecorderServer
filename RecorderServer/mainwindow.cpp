@@ -24,7 +24,7 @@ void MainWindow::timerEvent( QTimerEvent *event )
         {
             if(pDevice->Format()->nVideoWidth != 0)
             {
-                m_pQcapHandler->setQcapEncoder(0,1920,1080,60);
+
 
                 killTimer(m_nQcapTimer);
             }
@@ -104,6 +104,9 @@ void MainWindow::on_pushButton_2_clicked()
 void MainWindow::on_pushButton_3_clicked()
 {
     //start server
+
+    m_pQcapHandler->setQcapPgm(0,1920,1080,60);
+
     m_pQcapHandler->setQcapEncoderStartStreamWebrtcServer(0,
                                                           "127.0.0.1",
                                                           8888,
@@ -119,13 +122,4 @@ void MainWindow::on_pushButton_3_clicked()
 void MainWindow::on_pushButton_4_clicked()
 {
     // TEST
-
-
-    ULONG nChatterID = -1;
-
-    QCAP_CREATE_WEBRTC_CHATTER( (char*)"127.0.01", 8888, (char*)"TEST_NAME", &pChatter, &nChatterID  );
-
-    QCAP_CREATE_WEBRTC_SENDER( pChatter, 0, 1, &pServer );
-
-    QCAP_START_WEBRTC_CHAT( pChatter, 123 );
 }

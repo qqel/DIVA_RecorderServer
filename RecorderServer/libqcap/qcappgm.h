@@ -5,12 +5,12 @@
 #include "qcapshare.h"
 #include "qcapstream.h"
 
-class QcapEncoder : public QcapBase
+class QcapPgm : public QcapBase
 {
     Q_OBJECT
 public:
-    explicit QcapEncoder(uint32_t previewCH, ULONG width, ULONG height, double framerate);
-    ~QcapEncoder();
+    explicit QcapPgm(uint32_t previewCH, ULONG width, ULONG height, double framerate);
+    ~QcapPgm();
 
     qcap_format_t* Format();
     qcap_resize_frame_buffer_t* ResizeBuffer();
@@ -21,7 +21,7 @@ public:
 
     void emitOtherScreenVideoPreview(unsigned char *frameBuffer, int frameBufferSize, int width, int height, int bytesPerLine, int colorFormat);
 
-    void startEncoder(ULONG width, ULONG height, double framerate);
+    void startPGM(ULONG width, ULONG height, double framerate);
     void stopEncoder();
 
     // NO SIGNAL FRAME BUFFER

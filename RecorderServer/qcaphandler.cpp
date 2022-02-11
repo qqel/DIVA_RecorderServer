@@ -38,7 +38,7 @@ QcapHandler::~QcapHandler()
         delete pQcapDevice;
     }
 
-    foreach (QcapEncoder *pQcapEncoder, m_pQcapEncoderList)
+    foreach (QcapPgm *pQcapEncoder, m_pQcapEncoderList)
     {
         qDebug() << "delete pQcapDevice";
         delete pQcapEncoder;
@@ -93,47 +93,13 @@ void QcapHandler::refreshQcapDevicePreviewChannel()
         m_pQcapDeviceList.at(ch)->setPreviewCH(ch);
 }
 
-void QcapHandler::setQcapDeviceStartStreamWebrtcServer(uint32_t previewCH,
-                                                       QString ip,
-                                                       uint32_t port,
-                                                       QString name,
-                                                       uint32_t encoderType,
-                                                       uint32_t encoderFormat,
-                                                       uint32_t recordMode,
-                                                       uint32_t complexity,
-                                                       uint32_t bitrateKbps,
-                                                       uint32_t gop)
+void QcapHandler::setQcapPgm(uint32_t previewCH, ULONG width, ULONG height, double framerate)
 {
-    if (m_pQcapDeviceList.at(previewCH)) {
+    QcapPgm *pQcapPgm = new QcapPgm(previewCH, width, height, framerate);
 
-        QByteArray pszIp = ip.toLocal8Bit();
-        QByteArray pszName = name.toLocal8Bit();
+    pQcapPgm->startPGM(width, height, framerate);
 
-        qcap_encode_property_t *pProperty = new qcap_encode_property_t();
-        setEncodeProperty(pProperty, encoderType, encoderFormat,
-                          recordMode, complexity, bitrateKbps, gop);
-
-#if defined (Q_OS_LINUX)
-
-        pProperty->nAudioEncoderFormat = QCAP_ENCODER_FORMAT_AAC_ADTS;
-
-#endif
-
-        m_pQcapDeviceList.at(previewCH)->startStreamWebrtcServer(pProperty, pszIp.data(), port, pszName.data());
-    }
-    else {
-
-        qDebug() << __func__ << "Invalid m_pQcapDevice!!";
-    }
-}
-
-void QcapHandler::setQcapEncoder(uint32_t previewCH, ULONG width, ULONG height, double framerate)
-{
-    QcapEncoder *pQcapPreview = new QcapEncoder(previewCH, width, height, framerate);
-
-    pQcapPreview->startEncoder(width, height, framerate);
-
-    m_pQcapEncoderList.append(pQcapPreview);
+    m_pQcapEncoderList.append(pQcapPgm);
 
 }
 

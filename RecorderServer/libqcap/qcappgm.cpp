@@ -1,4 +1,4 @@
-#include "qcapencoder.h"
+#include "qcappgm.h"
 
 QRETURN ON_VIDEO_ENCODER_SHARE_RECORD_CALLBACK(UINT iRecNum,
                                                double dSampleTime,
@@ -9,7 +9,7 @@ QRETURN ON_VIDEO_ENCODER_SHARE_RECORD_CALLBACK(UINT iRecNum,
 {
     Q_UNUSED(iRecNum);
 
-    QcapEncoder* pQcapWebstream = reinterpret_cast<QcapEncoder*>(pUserData);
+    QcapPgm* pQcapWebstream = reinterpret_cast<QcapPgm*>(pUserData);
 
     if (nStreamBufferLen > 0) {
 
@@ -37,7 +37,7 @@ QRETURN ON_AUDIO_ENCODER_SHARE_RECORD_CALLBACK(UINT iRecNum,
 {
     Q_UNUSED(iRecNum);
 
-    QcapEncoder* pQcapWebstream = reinterpret_cast<QcapEncoder*>(pUserData);
+    QcapPgm* pQcapWebstream = reinterpret_cast<QcapPgm*>(pUserData);
 
     if (nStreamBufferLen > 0) {
 
@@ -53,7 +53,7 @@ QRETURN ON_AUDIO_ENCODER_SHARE_RECORD_CALLBACK(UINT iRecNum,
     return QCAP_RT_SKIP_DISPLAY;
 }
 
-QcapEncoder::QcapEncoder(uint32_t previewCH, ULONG width, ULONG height, double framerate) : m_nPreviewCH(previewCH)
+QcapPgm::QcapPgm(uint32_t previewCH, ULONG width, ULONG height, double framerate) : m_nPreviewCH(previewCH)
 {
 #if ENABLE_MOVE_TO_THREAD
     qcap_move_to_thread(this);
@@ -82,13 +82,13 @@ QcapEncoder::QcapEncoder(uint32_t previewCH, ULONG width, ULONG height, double f
 
     // INIT Encoder
     m_pQcapShareEncoder = new QcapShare();
-    startEncoder(width, height, framerate);
+    startPGM(width, height, framerate);
 
     // INIT RECORD
     m_pQcapShareRecord = new QcapShare();
 }
 
-QcapEncoder::~QcapEncoder()
+QcapPgm::~QcapPgm()
 {
     stopRecord();
     delete m_pQcapShareRecord;
@@ -106,17 +106,17 @@ QcapEncoder::~QcapEncoder()
     delete m_pResizeBuffer;
 }
 
-qcap_format_t* QcapEncoder::Format()
+qcap_format_t* QcapPgm::Format()
 {
     return m_Format;
 }
 
-qcap_resize_frame_buffer_t* QcapEncoder::ResizeBuffer()
+qcap_resize_frame_buffer_t* QcapPgm::ResizeBuffer()
 {
     return m_pResizeBuffer;
 }
 
-void QcapEncoder::emitOtherScreenVideoPreview(unsigned char *frameBuffer, int frameBufferSize, int width, int height, int bytesPerLine, int colorFormat)
+void QcapPgm::emitOtherScreenVideoPreview(unsigned char *frameBuffer, int frameBufferSize, int width, int height, int bytesPerLine, int colorFormat)
 {
     std::shared_ptr<QVideoFrame> frame
             = std::make_shared<QVideoFrame>(
@@ -132,7 +132,7 @@ void QcapEncoder::emitOtherScreenVideoPreview(unsigned char *frameBuffer, int fr
     }
 }
 
-void QcapEncoder::startEncoder(ULONG width, ULONG height, double framerate)
+void QcapPgm::startPGM(ULONG width, ULONG height, double framerate)
 {
     stopEncoder();
 
@@ -148,6 +148,7 @@ void QcapEncoder::startEncoder(ULONG width, ULONG height, double framerate)
     m_Format->nAudioBitsPerSample = 16;
     m_Format->nAudioSampleFrequency = 48000;
     m_Callback->pVideoStreamCB = ON_VIDEO_ENCODER_SHARE_RECORD_CALLBACK;
+    m_Callback->pAudioStreamCB = ON_AUDIO_ENCODER_SHARE_RECORD_CALLBACK;
     m_Callback->pUserData = reinterpret_cast<PVOID>(this);
 
     ULONG flag = static_cast<ULONG>(
@@ -161,22 +162,22 @@ void QcapEncoder::startEncoder(ULONG width, ULONG height, double framerate)
     m_pQcapShareEncoder->start(m_Format, m_Property, m_Callback, flag);
 }
 
-void QcapEncoder::stopEncoder()
+void QcapPgm::stopEncoder()
 {
     m_pQcapShareEncoder->stop();
 }
 
-void QcapEncoder::InitNoSignalBuffer(QString filepath)
+void QcapPgm::InitNoSignalBuffer(QString filepath)
 {
     m_pQcapShareEncoder->InitNoSignalBuffer(filepath);
 }
 
-void QcapEncoder::setNoSignalBuffer()
+void QcapPgm::setNoSignalBuffer()
 {
     m_pQcapShareEncoder->setNoSignalBuffer();
 }
 
-void QcapEncoder::receivVideoData(qcap_format_t *format, qcap_data_t *data)
+void QcapPgm::receivVideoData(qcap_format_t *format, qcap_data_t *data)
 {
 
     bool bCrop = false;
@@ -193,17 +194,17 @@ void QcapEncoder::receivVideoData(qcap_format_t *format, qcap_data_t *data)
                                          bCrop, nCropX, nCropY, nCropW, nCropH);
 }
 
-void QcapEncoder::receivAudioData(qcap_format_t *format, qcap_data_t *data)
+void QcapPgm::receivAudioData(qcap_format_t *format, qcap_data_t *data)
 {
     m_pQcapShareEncoder->setAudioFrameBuffer(format, data->buffer, data->bufferLen, data->sampleTime);
 }
 
-QcapShare* QcapEncoder::QcapShareRecord()
+QcapShare* QcapPgm::QcapShareRecord()
 {
     return m_pQcapShareRecord;
 }
 
-void QcapEncoder::startRecord(qcap_encode_property_t *property)
+void QcapPgm::startRecord(qcap_encode_property_t *property)
 {
     stopRecord();
 
@@ -214,26 +215,26 @@ void QcapEncoder::startRecord(qcap_encode_property_t *property)
     m_pQcapShareRecord->start(m_Format, property, &callback, QCAP_RECORD_FLAG_FULL | QCAP_RECORD_FLAG_IMMEDIATE, pszFileName.data());
 }
 
-void QcapEncoder::stopRecord()
+void QcapPgm::stopRecord()
 {
     m_pQcapShareRecord->stop();
 }
 
-QList<QcapStream *> QcapEncoder::QcapStreamServerList()
+QList<QcapStream *> QcapPgm::QcapStreamServerList()
 {
     return m_pQcapStreamServerList;
 }
 
-void QcapEncoder::startStreamWebrtcServer(qcap_encode_property_t *property, CHAR *ip, ULONG port, CHAR *name)
+void QcapPgm::startStreamWebrtcServer(qcap_encode_property_t *property, CHAR *ip, ULONG port, CHAR *name)
 {
     QcapStream *stream = new QcapStream();
-    stream->startWebrtcServer(m_Format, property, ip, port, name);
 
+    stream->startWebrtcServer(m_Format, property, ip, port, name);
 
     m_pQcapStreamServerList.append(stream);
 }
 
-void QcapEncoder::startStreamWebrtcChat(ULONG strPeerID)
+void QcapPgm::startStreamWebrtcChat(ULONG strPeerID)
 {
     if (!m_pQcapStreamServerList.isEmpty())
     {
@@ -251,7 +252,7 @@ void QcapEncoder::startStreamWebrtcChat(ULONG strPeerID)
     }
 }
 
-QList<ULONG> QcapEncoder::enumStreamWebrtcChatter()
+QList<ULONG> QcapPgm::enumStreamWebrtcChatter()
 {
     return m_pQcapStreamServerList.at(0)->enumWebrtcChatter();
 }

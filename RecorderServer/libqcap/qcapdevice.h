@@ -3,7 +3,7 @@
 
 #include <QAudioOutput>
 #include "qcapstream.h"
-#include "qcapencoder.h"
+#include "qcappgm.h"
 #include "qcapbase.h"
 
 struct qcap_device_av_input_config {
@@ -136,7 +136,7 @@ private:
     // STREAM
     QList<QcapStream*> m_pQcapStreamServerList;
     // WEB RTC
-    QList<QcapEncoder*> m_pQcapWebstreamList;
+    QList<QcapPgm*> m_pQcapWebstreamList;
 
 
 };

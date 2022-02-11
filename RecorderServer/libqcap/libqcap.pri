@@ -19,7 +19,7 @@ unix {
 SOURCES += \
     $$PWD/qcapbase.cpp \
     $$PWD/qcapdevice.cpp \
-    $$PWD/qcapencoder.cpp \
+    $$PWD/qcappgm.cpp \
     $$PWD/qcapstream.cpp \
     $$PWD/qcapshare.cpp \
 
@@ -27,7 +27,7 @@ SOURCES += \
 HEADERS += \
     $$PWD/qcapbase.h \
     $$PWD/qcapdevice.h \
-    $$PWD/qcapencoder.h \
+    $$PWD/qcappgm.h \
     $$PWD/qcapstream.h \
     $$PWD/qcapshare.h \
 
