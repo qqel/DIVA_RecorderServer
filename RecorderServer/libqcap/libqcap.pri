@@ -19,15 +19,15 @@ unix {
 SOURCES += \
     $$PWD/qcapbase.cpp \
     $$PWD/qcapdevice.cpp \
+    $$PWD/qcapencoder.cpp \
     $$PWD/qcapstream.cpp \
     $$PWD/qcapshare.cpp \
-    $$PWD/qcapwebstream.cpp \
 
 
 HEADERS += \
     $$PWD/qcapbase.h \
     $$PWD/qcapdevice.h \
+    $$PWD/qcapencoder.h \
     $$PWD/qcapstream.h \
     $$PWD/qcapshare.h \
-    $$PWD/qcapwebstream.h \
 

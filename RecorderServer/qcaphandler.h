@@ -20,8 +20,15 @@ public:
     void setQcapDeviceStartStreamRtspServer(uint32_t previewCH, QString account, QString password, uint32_t port, uint32_t httpPort, uint32_t encoderType, uint32_t encoderFormat, uint32_t recordMode, uint32_t complexity, uint32_t bitrateKbps, uint32_t gop);
     void setQcapDeviceStartStreamWebrtcServer(uint32_t previewCH, QString ip, uint32_t port, QString name, uint32_t encoderType, uint32_t encoderFormat, uint32_t recordMode, uint32_t complexity, uint32_t bitrateKbps, uint32_t gop);
     void setQcapDeviceStartStreamWebrtcChatter(uint32_t previewCH, QString strPeerID);
+
+    // QCAP WEBSTREAM
+    void setQcapEncoder(uint32_t previewCH, ULONG width, ULONG height, double framerate);
+    void setQcapEncoderStartStreamWebrtcServer(uint32_t previewCH, QString ip, uint32_t port, QString name, uint32_t encoderType, uint32_t encoderFormat, uint32_t recordMode, uint32_t complexity, uint32_t bitrateKbps, uint32_t gop);
+    void setQcapEncoderStartStreamWebrtcChatter(uint32_t previewCH, ULONG nPeerID);
+    void enumStreamWebrtcChatter();
 private:
-    QList<QcapDevice *> m_pQcapDeviceList;
+    QList<QcapDevice *>  m_pQcapDeviceList;
+    QList<QcapEncoder *> m_pQcapEncoderList;
 };
 
 #endif // QCAPHANDLER_H

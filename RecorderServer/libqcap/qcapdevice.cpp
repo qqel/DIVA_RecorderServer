@@ -134,12 +134,6 @@ QRETURN onDeviceVideoPreviewCB(PVOID  pDevice,
         // SNAPSHOT
         qcap_snapshot_info_t *snapshot = pQcapDevice->SnapshotInfo();
         pQcapDevice->snapshot(format, snapshot, pFrameBuffer);
-
-        // EMIT VIDEO STREAM
-        QList<QcapStream *> streamList = pQcapDevice->QcapStreamServerList();
-        if (!streamList.isEmpty())
-            foreach (QcapStream *stream, streamList)
-                stream->setVideoFrameBuffer(pQcapDevice->Format(), pFrameBuffer, nFrameBufferLen, dSampleTime);
     }
 
     return QCAP_RT_OK;
@@ -157,12 +151,6 @@ QRETURN onDeviceAudioPreviewCB(PVOID  pDevice,
 
     if (nFrameBufferLen > 0) {
 
-        qcap_format_t *format = pQcapDevice->Format();
-        // STREAM
-        QList<QcapStream *> streamList = pQcapDevice->QcapStreamServerList();
-        if (!streamList.isEmpty())
-            foreach (QcapStream *stream, streamList)
-                stream->setAudioFrameBuffer(format, pFrameBuffer, nFrameBufferLen, dSampleTime);
 
     }
 
@@ -179,8 +167,6 @@ QcapDevice::QcapDevice(uint32_t previewCH) : m_nPreviewCH(previewCH)
 
 QcapDevice::~QcapDevice()
 {
-    stopStreamServer();
-
     deviceUninit();
 
     paramUninit();
@@ -654,33 +640,9 @@ void QcapDevice::setSharpness(const ULONG &value)
     });
 }
 
-QList<QcapStream *> QcapDevice::QcapStreamServerList()
-{
-    return m_pQcapStreamServerList;
-}
-
-void QcapDevice::startStreamRtspServer(qcap_encode_property_t *property, CHAR *account, CHAR *password, ULONG port, ULONG httpPort)
-{
-    QcapStream *stream = new QcapStream();
-    stream->startRtspServer(m_pQcapFormat, property, account, password, port, httpPort);
-
-    m_pQcapStreamServerList.append(stream);
-}
-
-void QcapDevice::startStreamHlsServer(qcap_encode_property_t *property, CHAR *rootFolderPath, CHAR *subFolderPath)
-{
-    QcapStream *stream = new QcapStream();
-    stream->startHlsServer(m_pQcapFormat, property, rootFolderPath, subFolderPath);
-
-    m_pQcapStreamServerList.append(stream);
-}
-
 void QcapDevice::startStreamWebrtcServer(qcap_encode_property_t *property, CHAR *ip, ULONG port, CHAR *name)
 {
-    QcapStream *stream = new QcapStream();
-    stream->startWebrtcServer(m_pQcapFormat, property, ip, port, name);
 
-    m_pQcapStreamServerList.append(stream);
 }
 
 void QcapDevice::startStreamWebrtcChatter(QString strPeerID)
@@ -688,16 +650,7 @@ void QcapDevice::startStreamWebrtcChatter(QString strPeerID)
 
 }
 
-void QcapDevice::stopStreamServer()
+void QcapDevice::startStreamWebrtcEnum()
 {
-    while (m_pQcapStreamServerList.length() > 0) {
 
-        QcapStream* stream = m_pQcapStreamServerList.front();
-
-        m_pQcapStreamServerList.pop_front();
-
-        delete stream;
-    }
-    m_pQcapStreamServerList.clear();
 }
-

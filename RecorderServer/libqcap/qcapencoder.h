@@ -5,12 +5,12 @@
 #include "qcapshare.h"
 #include "qcapstream.h"
 
-class QcapWebstream : public QcapBase
+class QcapEncoder : public QcapBase
 {
     Q_OBJECT
 public:
-    explicit QcapWebstream(uint32_t previewCH, ULONG width, ULONG height, double framerate);
-    ~QcapWebstream();
+    explicit QcapEncoder(uint32_t previewCH, ULONG width, ULONG height, double framerate);
+    ~QcapEncoder();
 
     qcap_format_t* Format();
     qcap_resize_frame_buffer_t* ResizeBuffer();
@@ -21,8 +21,8 @@ public:
 
     void emitOtherScreenVideoPreview(unsigned char *frameBuffer, int frameBufferSize, int width, int height, int bytesPerLine, int colorFormat);
 
-    void startPreview(ULONG width, ULONG height, double framerate);
-    void stopPreview();
+    void startEncoder(ULONG width, ULONG height, double framerate);
+    void stopEncoder();
 
     // NO SIGNAL FRAME BUFFER
     void InitNoSignalBuffer(QString filepath);
@@ -36,6 +36,8 @@ public:
     // STREAM
     QList<QcapStream *> QcapStreamServerList();
     void startStreamWebrtcServer(qcap_encode_property_t *property, CHAR *ip, ULONG port, CHAR *name);
+    void startStreamWebrtcChat(ULONG strPeerID);
+    QList<ULONG> enumStreamWebrtcChatter();
 
 signals:
     void callFrameCountSignal();

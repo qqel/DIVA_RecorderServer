@@ -170,6 +170,74 @@ void QcapStream::startWebrtcServer(qcap_format_t *format, qcap_encode_property_t
 #endif
 }
 
+void QcapStream::startWebrtcChat(ULONG strPeerID)
+{
+    if(m_pChatter)
+    {
+        QRESULT RT;
+
+        RT = QCAP_START_WEBRTC_CHAT( m_pChatter, strPeerID );
+
+        if( RT == QCAP_RS_SUCCESSFUL)
+        {
+            m_bIsConnected = true;
+        }
+        else{
+            QCAP_STOP_WEBRTC_CHAT(m_pChatter);
+
+            m_bIsConnected = false;
+        }
+    }
+}
+
+QList<ULONG> QcapStream::enumWebrtcChatter()
+{
+    QList<ULONG> listPeerID;
+
+    ULONG nUserCount = 0, nPeerID = 0;
+
+    QString PeerColumn;
+
+    CHAR *PeerName;
+
+    listPeerID.clear();
+
+    QRESULT ret = QCAP_ENUM_WEBRTC_USER_IN_CHATROOM( m_pChatter, &nPeerID, &PeerName, FALSE );
+
+    qDebug("QCAP_ENUM_WEBRTC_USER_IN_CHATROOM ret = %u, peerID = %u, peerName = %s\n", ret, nPeerID, PeerName );
+
+    PeerColumn = QString::number(nPeerID) + ", " + QString(PeerName);
+
+    qDebug("HGHH %s", PeerColumn.toLatin1().data());
+
+    if ( ret != QCAP_RS_SUCCESSFUL ) {
+
+        qDebug("Faild to QCAP_ENUM_WEBRTC_USER_IN_CHATROOM \n");
+
+        return listPeerID;
+    }
+
+    listPeerID.append(nPeerID);
+
+    nUserCount ++;
+
+    while ( QCAP_RS_SUCCESSFUL == QCAP_ENUM_WEBRTC_USER_IN_CHATROOM( m_pChatter, &nPeerID, &PeerName, TRUE )) {
+
+        qDebug("QCAP_ENUM_WEBRTC_USER_IN_CHATROOM ret = %u, peerID = %u, peerName = %s\n", ret, nPeerID, PeerName );
+
+        sprintf( PeerColumn.toLatin1().data(), "%u, %s", nPeerID, PeerName );
+
+        listPeerID.append(nPeerID);
+
+        nUserCount ++;
+    }
+}
+
+bool QcapStream::getWebrtcIsConnected()
+{
+    return m_bIsConnected;
+}
+
 void QcapStream::startServer(qcap_format_t *format, qcap_encode_property_t *property, CHAR *key)
 {
     ULONG nProfile = adjustRecordProfile(format->nVideoWidth, format->nVideoHeight);

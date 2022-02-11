@@ -20,6 +20,9 @@ public:
     void startNdiServer(qcap_format_t *format, qcap_encode_property_t *property, CHAR *NdiName);
     void startNdiHxServer(qcap_format_t *format, qcap_encode_property_t *property, CHAR *NdiName, CHAR *key);
     void startWebrtcServer(qcap_format_t *format, qcap_encode_property_t *property, CHAR *ip, ULONG port, CHAR *name);
+    void startWebrtcChat(ULONG strPeerID);
+    QList<ULONG> enumWebrtcChatter();
+    bool getWebrtcIsConnected();
     void stopServer();
 
     // RAW
@@ -34,6 +37,7 @@ private:
 
     PVOID m_pServer = nullptr;
     PVOID m_pChatter = nullptr;
+    bool m_bIsConnected = false;
     bool m_bSvrFlag = false;
 };
 

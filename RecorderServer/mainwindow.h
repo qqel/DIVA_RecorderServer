@@ -27,11 +27,19 @@ public:
     int         m_nQcapTimer;
     QcapHandler *m_pQcapHandler;
 
+    PVOID pServer = NULL;
+    PVOID pChatter = NULL;
 
 private slots:
     void timerEvent( QTimerEvent *event );
 
     void on_pushButton_clicked();
+
+    void on_pushButton_2_clicked();
+
+    void on_pushButton_3_clicked();
+
+    void on_pushButton_4_clicked();
 
 private:
     Ui::MainWindow *ui;

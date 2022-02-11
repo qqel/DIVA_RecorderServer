@@ -9,7 +9,7 @@ void MainWindow::timerEvent( QTimerEvent *event )
         if(g_bDbg) qDebug() << "client status:" << m_pClient->state();
         if(m_bIsConnected == false)
         {
-            qDebug() << "try to connect server...";
+            if(g_bDbg) qDebug() << "try to connect server...";
             m_pClient->open(QUrl("ws://10.10.42.70:8081"));
         }
         else
@@ -24,27 +24,8 @@ void MainWindow::timerEvent( QTimerEvent *event )
         {
             if(pDevice->Format()->nVideoWidth != 0)
             {
-//                m_pQcapHandler->setQcapDeviceStartStreamRtspServer(0,
-//                                                                   "root",
-//                                                                   "root",
-//                                                                   5566,
-//                                                                   5567,
-//                                                                   QCAP_ENCODER_TYPE_INTEL_MEDIA_SDK,
-//                                                                   QCAP_ENCODER_FORMAT_H264,
-//                                                                   0,
-//                                                                   QCAP_RECORD_MODE_CBR,
-//                                                                   8*1000*1000,
-//                                                                   30);
-//                m_pQcapHandler->setQcapDeviceStartStreamWebrtcServer(0,
-//                                                                     "127.0.0.1",
-//                                                                     8888,
-//                                                                     "client0",
-//                                                                     QCAP_ENCODER_TYPE_INTEL_MEDIA_SDK,
-//                                                                     QCAP_ENCODER_FORMAT_H264,
-//                                                                     QCAP_RECORD_MODE_CBR,
-//                                                                     0,
-//                                                                     8*1000*1000,
-//                                                                     30);
+                m_pQcapHandler->setQcapEncoder(0,1920,1080,60);
+
                 killTimer(m_nQcapTimer);
             }
         }
@@ -111,5 +92,40 @@ void MainWindow::initWebSocket()
 
 void MainWindow::on_pushButton_clicked()
 {
+    // start chat
+}
 
+void MainWindow::on_pushButton_2_clicked()
+{
+    // enum
+    m_pQcapHandler->enumStreamWebrtcChatter();
+}
+
+void MainWindow::on_pushButton_3_clicked()
+{
+    //start server
+    m_pQcapHandler->setQcapEncoderStartStreamWebrtcServer(0,
+                                                          "127.0.0.1",
+                                                          8888,
+                                                          "client0",
+                                                          QCAP_ENCODER_TYPE_INTEL_MEDIA_SDK,
+                                                          QCAP_ENCODER_FORMAT_H264,
+                                                          QCAP_RECORD_MODE_CBR,
+                                                          0,
+                                                          8*1000*1000,
+                                                          30);
+}
+
+void MainWindow::on_pushButton_4_clicked()
+{
+    // TEST
+
+
+    ULONG nChatterID = -1;
+
+    QCAP_CREATE_WEBRTC_CHATTER( (char*)"127.0.01", 8888, (char*)"TEST_NAME", &pChatter, &nChatterID  );
+
+    QCAP_CREATE_WEBRTC_SENDER( pChatter, 0, 1, &pServer );
+
+    QCAP_START_WEBRTC_CHAT( pChatter, 123 );
 }

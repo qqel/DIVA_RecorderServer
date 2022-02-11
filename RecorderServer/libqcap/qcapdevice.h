@@ -3,7 +3,7 @@
 
 #include <QAudioOutput>
 #include "qcapstream.h"
-#include "qcapwebstream.h"
+#include "qcapencoder.h"
 #include "qcapbase.h"
 
 struct qcap_device_av_input_config {
@@ -108,6 +108,7 @@ public:
     void startStreamHlsServer(qcap_encode_property_t *property, CHAR *rootFolderPath, CHAR *subFolderPath);
     void startStreamWebrtcServer(qcap_encode_property_t *property, CHAR *ip, ULONG port, CHAR *name);
     void startStreamWebrtcChatter(QString strPeerID);
+    void startStreamWebrtcEnum();
     void stopStreamServer();
 
 signals:
@@ -135,7 +136,7 @@ private:
     // STREAM
     QList<QcapStream*> m_pQcapStreamServerList;
     // WEB RTC
-    QList<QcapWebstream*> m_pQcapWebstreamList;
+    QList<QcapEncoder*> m_pQcapWebstreamList;
 
 
 };
