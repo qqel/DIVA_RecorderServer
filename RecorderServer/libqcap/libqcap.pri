@@ -16,18 +16,18 @@ unix {
 
 }
 
-SOURCES += \
-    $$PWD/qcapbase.cpp \
-    $$PWD/qcapdevice.cpp \
-    $$PWD/qcappgm.cpp \
-    $$PWD/qcapstream.cpp \
-    $$PWD/qcapshare.cpp \
+#SOURCES += \
+#    $$PWD/qcapbase.cpp \
+#    $$PWD/qcapdevice.cpp \
+#    $$PWD/qcappgm.cpp \
+#    $$PWD/qcapstream.cpp \
+#    $$PWD/qcapshare.cpp \
 
 
-HEADERS += \
-    $$PWD/qcapbase.h \
-    $$PWD/qcapdevice.h \
-    $$PWD/qcappgm.h \
-    $$PWD/qcapstream.h \
-    $$PWD/qcapshare.h \
+#HEADERS += \
+#    $$PWD/qcapbase.h \
+#    $$PWD/qcapdevice.h \
+#    $$PWD/qcappgm.h \
+#    $$PWD/qcapstream.h \
+#    $$PWD/qcapshare.h \
 

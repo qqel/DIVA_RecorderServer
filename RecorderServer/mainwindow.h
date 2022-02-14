@@ -24,8 +24,6 @@ public:
     int         m_nQcapTimer;
     QcapHandler *m_pQcapHandler;
 
-    PVOID pServer = NULL;
-    PVOID pChatter = NULL;
 
 private slots:
     void timerEvent( QTimerEvent *event );

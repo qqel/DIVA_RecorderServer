@@ -1,32 +1,36 @@
 #ifndef QCAPHANDLER_H
 #define QCAPHANDLER_H
 
-#include "libqcap/qcapdevice.h"
-#include "libqcap/qcapstream.h"
+#include <QObject>
+#include <Windows.h>
+#include "QCAP.H"
 
-
-class QcapHandler : public QcapBase
+class QcapHandler : public QObject
 {
     Q_OBJECT
 public:
-    explicit QcapHandler();
+    explicit QcapHandler(QObject *parent = nullptr);
     ~QcapHandler();
-    void autoCreateDevicePGM();
-    /* QCAP_DEVICE */
-    QcapDevice *getQcapDevice(uint32_t previewCH);
-    void newQcapDevice(uint32_t previewCH);
-    void deleteQcapDevice(uint32_t previewCH);
-    void refreshQcapDevicePreviewChannel();
 
-    /* QCAP PGM */
-    void setQcapPgm(uint32_t previewCH, ULONG width, ULONG height, double framerate);
-    // STREAM
-    void setQcapEncoderStartStreamWebrtcServer(uint32_t previewCH, QString ip, uint32_t port, QString name, uint32_t encoderType, uint32_t encoderFormat, uint32_t recordMode, uint32_t complexity, uint32_t bitrateKbps, uint32_t gop);
-    void setQcapEncoderStartStreamWebrtcChatter(uint32_t previewCH, ULONG nPeerID);
-    void enumStreamWebrtcChatter();
-private:
-    QList<QcapDevice *>  m_pQcapDeviceList;
-    QList<QcapPgm *> m_pQcapEncoderList;
+    PVOID			m_pDevice;
+    ULONG			m_nDeviceVideoWidth;
+    ULONG			m_nDeviceVideoHeight;
+    BOOL			m_bDeviceVideoIsInterleaved;
+    double			m_dDeviceVideoFrameRate;
+    ULONG			m_nDeviceAudioChannel;
+    ULONG			m_nDeviceAudioBitsPerSample;
+    ULONG			m_nDeviceAudioSampleFrequency;
+
+
+    PVOID			m_pChatter;
+    PVOID			m_pSender;
+    PVOID			m_pReceiver;
+    ULONG			m_nStartChatState;
+    CHAR			m_chatter_username[MAX_PATH];
+    ULONG           m_chatter_id;
+
+signals:
+
 };
 
 #endif // QCAPHANDLER_H

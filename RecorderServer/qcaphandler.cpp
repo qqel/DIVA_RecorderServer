@@ -1,145 +1,191 @@
 #include "qcaphandler.h"
 
-inline void setEncodeProperty(qcap_encode_property_t *property,
-                              uint32_t encoderType,
-                              uint32_t encoderFormat,
-                              uint32_t recordMode,
-                              uint32_t complexity,
-                              uint32_t bitrateKbps,
-                              uint32_t gop,
-                              double_t segment = 0.0)
+#define SHARE_ENCODER 0
+#define ENCODER_WIDTH 1920
+#define ENCODER_HEIGHT 1080
+#define ENCODER_FPS 60
+
+QRETURN on_format_changed_callback( PVOID pDevice, ULONG nVideoInput, ULONG nAudioInput, ULONG nVideoWidth, ULONG nVideoHeight, BOOL bVideoIsInterleaved, double dVideoFrameRate, ULONG nAudioChannels, ULONG nAudioBitsPerSample, ULONG nAudioSampleFrequency, PVOID pUserData )
 {
-    property->nEncoderType = encoderType;
-    property->nVideoEncoderFormat = encoderFormat;
-    property->nRecordMode = recordMode;
-    property->nComplexity = complexity;
-    property->nBitrateKbps = bitrateKbps;
-    property->nGop = gop;
-    property->dSegment = segment;
+    QcapHandler* m_pMainDialog =  (QcapHandler * ) pUserData;
+
+    m_pMainDialog->m_nDeviceVideoWidth = nVideoWidth;
+
+    m_pMainDialog->m_nDeviceVideoHeight = nVideoHeight;
+
+    m_pMainDialog->m_bDeviceVideoIsInterleaved = bVideoIsInterleaved;
+
+    m_pMainDialog->m_dDeviceVideoFrameRate = dVideoFrameRate;
+
+    m_pMainDialog->m_nDeviceAudioChannel = nAudioChannels;
+
+    m_pMainDialog->m_nDeviceAudioBitsPerSample = nAudioBitsPerSample;
+
+    m_pMainDialog->m_nDeviceAudioSampleFrequency = nAudioSampleFrequency;
+
+    qDebug( "on_format_changed_callback( %d, %d, %d, %2.3f, %d, %d, %d )", nVideoWidth, nVideoHeight, bVideoIsInterleaved, dVideoFrameRate, nAudioChannels, nAudioBitsPerSample, nAudioSampleFrequency );
+
+    return QCAP_RT_OK;
 }
 
-QcapHandler::QcapHandler()
+QRETURN on_no_signal_detected_callback( PVOID pDevice, ULONG nVideoInput, ULONG nAudioInput, PVOID pUserData )
 {
-#if ENABLE_MOVE_TO_THREAD
-    qcap_move_to_thread(this);
-#endif
-    // INIT QCAP SYSTEM CONFIG
-    qcap_system_config_t config;
-    config.nAutoInputDetectionTimeout = 1000;
-    config.bEnableAsyncBackgroundSnapshot = TRUE;
-    setSystemConfig(config);
+    QcapHandler* m_pMainDialog =  (QcapHandler * ) pUserData;
+
+    m_pMainDialog->m_nDeviceVideoWidth = 0;
+
+    m_pMainDialog->m_nDeviceVideoHeight = 0;
+
+    m_pMainDialog->m_bDeviceVideoIsInterleaved = FALSE;
+
+    m_pMainDialog->m_dDeviceVideoFrameRate = 0.0;
+
+    m_pMainDialog->m_nDeviceAudioChannel = 0;
+
+    m_pMainDialog->m_nDeviceAudioBitsPerSample = 0;
+
+    m_pMainDialog->m_nDeviceAudioSampleFrequency = 0;
+
+    qDebug( "on_no_signal_detected_callback()" );
+
+    return QCAP_RT_OK;
+}
+
+QRETURN on_video_preview_callback( PVOID pDevice, double dSampleTime, BYTE * pFrameBuffer, ULONG nFrameBufferLen, PVOID pUserData )
+{
+    QcapHandler* m_pMainDialog =  (QcapHandler * ) pUserData;
+
+    if(nFrameBufferLen != 0)
+    {
+        QCAP_SET_VIDEO_SHARE_RECORD_UNCOMPRESSION_BUFFER(SHARE_ENCODER,QCAP_COLORSPACE_TYPE_YUY2, 1920, 1080, pFrameBuffer, nFrameBufferLen, dSampleTime);
+    }
+
+    return QCAP_RT_OK;
+}
+
+QRETURN on_audio_preview_callback( PVOID pDevice, double dSampleTime, BYTE * pFrameBuffer, ULONG nFrameBufferLen, PVOID pUserData )
+{
+    QcapHandler* m_pMainDialog =  (QcapHandler * ) pUserData;
+
+    if(nFrameBufferLen != 0)
+    {
+        QCAP_SET_AUDIO_SHARE_RECORD_UNCOMPRESSION_BUFFER(SHARE_ENCODER, pFrameBuffer, nFrameBufferLen, dSampleTime);
+    }
+
+    return QCAP_RT_OK;
+}
+
+QRETURN on_video_sharerecord_callback(UINT iRecNum /*IN*/, double dSampleTime /*IN*/, BYTE * pStreamBuffer /*IN*/, ULONG nStreamBufferLen /*IN*/, BOOL bIsKeyFrame /*IN*/, PVOID pUserData /*IN*/ )
+{
+    QcapHandler* m_pMainDialog =  (QcapHandler * ) pUserData;
+
+    static int count = 0;
+
+    if( m_pMainDialog->m_nStartChatState >= 0x00000001 ) {
+
+        char buffer[64];
+
+        sprintf( buffer, "%s -  %d", m_pMainDialog->m_chatter_username, count);
+
+        count ++ ;
+
+        QCAP_SET_OSD_TEXT( m_pMainDialog->m_pDevice, 0, 0, 0, 0, 0, buffer, (char*)"Arial", QCAP_FONT_STYLE_BOLD, 72, 0xFFFFFFFF, 0xFFFF0000, 0xFF, 0, 0 );
+
+        QCAP_SET_VIDEO_BROADCAST_SERVER_COMPRESSION_BUFFER( m_pMainDialog->m_pSender,
+                                                            0,
+                                                            pStreamBuffer,
+                                                            nStreamBufferLen,
+                                                            bIsKeyFrame,
+                                                            dSampleTime);
+    }
+
+    return QCAP_RT_OK;
+}
+
+QRETURN on_audio_sharerecord_callback(UINT iRecNum /*IN*/, double dSampleTime /*IN*/, BYTE * pStreamBuffer /*IN*/, ULONG nStreamBufferLen /*IN*/, PVOID pUserData /*IN*/ )
+{
+    QcapHandler* m_pMainDialog =  (QcapHandler * ) pUserData;
+
+    if( m_pMainDialog->m_nStartChatState >= 0x00000001 ) {
+
+        QCAP_SET_AUDIO_BROADCAST_SERVER_UNCOMPRESSION_BUFFER( m_pMainDialog->m_pSender,
+                                                              0,
+                                                              pStreamBuffer,
+                                                              nStreamBufferLen );
+    }
+
+    return QCAP_RT_OK;
+}
+QcapHandler::QcapHandler(QObject *parent) : QObject(parent)
+{
+    QCAP_CREATE( (char*) "SC0710 PCI", 0, NULL, &m_pDevice, TRUE, FALSE );
+
+    QCAP_REGISTER_FORMAT_CHANGED_CALLBACK( m_pDevice, on_format_changed_callback, this );
+
+    QCAP_REGISTER_NO_SIGNAL_DETECTED_CALLBACK( m_pDevice, on_no_signal_detected_callback, this );
+
+    QCAP_REGISTER_VIDEO_PREVIEW_CALLBACK( m_pDevice, on_video_preview_callback, this );
+
+    QCAP_REGISTER_AUDIO_PREVIEW_CALLBACK( m_pDevice, on_audio_preview_callback, this );
+
+    QCAP_RUN( m_pDevice );
+
+    QCAP_SET_AUDIO_VOLUME(m_pDevice , 0);
+
+    QCAP_SET_VIDEO_SHARE_RECORD_PROPERTY(SHARE_ENCODER,
+                                         QCAP_ENCODER_TYPE_INTEL_MEDIA_SDK,
+                                         QCAP_ENCODER_FORMAT_H264,
+                                         QCAP_COLORSPACE_TYPE_YUY2,
+                                         ENCODER_WIDTH,ENCODER_HEIGHT,ENCODER_FPS,QCAP_RECORD_MODE_CBR,8000,8*1000*1000,30,0,0);
+    QCAP_SET_AUDIO_SHARE_RECORD_PROPERTY(SHARE_ENCODER,
+                                         QCAP_ENCODER_TYPE_SOFTWARE,
+                                         QCAP_ENCODER_FORMAT_AAC,
+                                         2,16,48000);
+
+    QCAP_REGISTER_VIDEO_SHARE_RECORD_CALLBACK(SHARE_ENCODER, on_video_sharerecord_callback, this);
+
+    QCAP_REGISTER_AUDIO_SHARE_RECORD_CALLBACK(SHARE_ENCODER, on_audio_sharerecord_callback, this);
+
+    QCAP_START_SHARE_RECORD(SHARE_ENCODER, (char*)"", QCAP_RECORD_FLAG_ENCODE);
 }
 
 QcapHandler::~QcapHandler()
 {
-    foreach (QcapDevice *pQcapDevice, m_pQcapDeviceList)
+    QCAP_STOP_SHARE_RECORD(SHARE_ENCODER);
+
+    m_nStartChatState = 0x00000000;
+
+    if( m_pChatter ) {
+
+        QCAP_DESTROY_WEBRTC_CHATTER( m_pChatter );
+
+        m_pChatter= nullptr;
+    }
+
+    if( m_pSender ) {
+
+        QCAP_STOP_BROADCAST_SERVER( m_pSender );
+
+        QCAP_DESTROY_BROADCAST_SERVER( m_pSender );
+
+        m_pSender = nullptr;
+    }
+
+    if( m_pReceiver ) {
+
+        QCAP_STOP_BROADCAST_CLIENT( m_pReceiver );
+
+        QCAP_DESTROY_BROADCAST_CLIENT( m_pReceiver );
+
+        m_pReceiver = nullptr;
+    }
+
+    if(m_pDevice)
     {
-        qDebug() << "delete pQcapDevice";
-        delete pQcapDevice;
-    }
+        QCAP_STOP(m_pDevice);
 
-    foreach (QcapPgm *pQcapEncoder, m_pQcapEncoderList)
-    {
-        qDebug() << "delete pQcapDevice";
-        delete pQcapEncoder;
+        QCAP_DESTROY(m_pDevice);
+
+        m_pDevice = nullptr;
     }
 }
-
-void QcapHandler::autoCreateDevicePGM()
-{
-    QtConcurrent::run([&]() {
-
-        CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-
-        QMultiMap<QString, int> multiMap = QcapDevice::enumDevice();
-
-        foreach (QString key, multiMap.uniqueKeys())
-            foreach (int value, multiMap.values(key)){
-                qDebug() << key << value << false << multiMap.size();
-
-                QcapDevice *pQcapDevice = new QcapDevice(value);
-                m_pQcapDeviceList.append(pQcapDevice);
-
-                getQcapDevice(value)->setDevice("SC0710 PCI", 0);
-
-                setQcapPgm(0,1920,1080,60);
-            }
-    });
-
-}
-
-QcapDevice *QcapHandler::getQcapDevice(uint32_t previewCH)
-{
-    return m_pQcapDeviceList.length() > static_cast<int>(previewCH) ?
-                m_pQcapDeviceList.at(previewCH) : nullptr;
-}
-
-void QcapHandler::newQcapDevice(uint32_t previewCH)
-{
-    QcapDevice *pQcapDevice = new QcapDevice(previewCH);
-
-    m_pQcapDeviceList.append(pQcapDevice);
-
-}
-
-void QcapHandler::deleteQcapDevice(uint32_t previewCH)
-{
-    delete m_pQcapDeviceList.at(previewCH);
-
-    m_pQcapDeviceList.removeAt(previewCH);
-}
-
-void QcapHandler::refreshQcapDevicePreviewChannel()
-{
-    for (int ch = 0; ch < m_pQcapDeviceList.length(); ch++)
-        m_pQcapDeviceList.at(ch)->setPreviewCH(ch);
-}
-
-void QcapHandler::setQcapPgm(uint32_t previewCH, ULONG width, ULONG height, double framerate)
-{
-    QcapPgm *pQcapPgm = new QcapPgm(previewCH, width, height, framerate);
-
-    pQcapPgm->startPGM(width, height, framerate);
-
-    m_pQcapEncoderList.append(pQcapPgm);
-
-}
-
-void QcapHandler::setQcapEncoderStartStreamWebrtcServer(uint32_t previewCH, QString ip, uint32_t port, QString name, uint32_t encoderType, uint32_t encoderFormat, uint32_t recordMode, uint32_t complexity, uint32_t bitrateKbps, uint32_t gop)
-{
-    qDebug() << __func__;
-    if (m_pQcapEncoderList.at(previewCH)) {
-
-        QByteArray pszIp = ip.toLocal8Bit();
-        QByteArray pszName = name.toLocal8Bit();
-
-        qcap_encode_property_t *pProperty = new qcap_encode_property_t();
-        setEncodeProperty(pProperty, encoderType, encoderFormat,
-                          recordMode, complexity, bitrateKbps, gop);
-
-#if defined (Q_OS_LINUX)
-
-        pProperty->nAudioEncoderFormat = QCAP_ENCODER_FORMAT_AAC_ADTS;
-
-#endif
-
-        m_pQcapEncoderList.at(previewCH)->startStreamWebrtcServer(pProperty, pszIp.data(), port, pszName.data());
-    }
-    else {
-
-        qDebug() << __func__ << "Invalid m_pQcapDevice!!";
-    }
-}
-
-void QcapHandler::setQcapEncoderStartStreamWebrtcChatter(uint32_t previewCH, ULONG nPeerID)
-{
-
-}
-
-void QcapHandler::enumStreamWebrtcChatter()
-{
-    qDebug() << __func__;
-
-    m_pQcapEncoderList.at(0)->enumStreamWebrtcChatter();
-}
-

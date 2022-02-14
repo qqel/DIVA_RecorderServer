@@ -6,16 +6,7 @@ void MainWindow::timerEvent( QTimerEvent *event )
 {
     if( event->timerId() == m_nQcapTimer )
     {
-        QcapDevice *pDevice = m_pQcapHandler->getQcapDevice(0);
-        if(pDevice != nullptr)
-        {
-            if(pDevice->Format()->nVideoWidth != 0)
-            {
 
-
-                killTimer(m_nQcapTimer);
-            }
-        }
     }
 }
 
@@ -28,8 +19,6 @@ MainWindow::MainWindow(QWidget *parent)
     m_nQcapTimer = -1;
 
     m_pQcapHandler = new QcapHandler();
-
-    m_pQcapHandler->autoCreateDevicePGM();
 
     m_pWebsocketHandler = new WebsocketHandler();
 
@@ -56,23 +45,22 @@ void MainWindow::on_pushButton_clicked()
 void MainWindow::on_pushButton_2_clicked()
 {
     // enum
-    m_pQcapHandler->enumStreamWebrtcChatter();
 }
 
 void MainWindow::on_pushButton_3_clicked()
 {
     //start server
 
-    m_pQcapHandler->setQcapEncoderStartStreamWebrtcServer(0,
-                                                          "127.0.0.1",
-                                                          8888,
-                                                          "client0",
-                                                          QCAP_ENCODER_TYPE_INTEL_MEDIA_SDK,
-                                                          QCAP_ENCODER_FORMAT_H264,
-                                                          QCAP_RECORD_MODE_CBR,
-                                                          0,
-                                                          8*1000*1000,
-                                                          30);
+//    m_pQcapHandler->setQcapEncoderStartStreamWebrtcServer(0,
+//                                                          "127.0.0.1",
+//                                                          8888,
+//                                                          "client0",
+//                                                          QCAP_ENCODER_TYPE_INTEL_MEDIA_SDK,
+//                                                          QCAP_ENCODER_FORMAT_H264,
+//                                                          QCAP_RECORD_MODE_CBR,
+//                                                          0,
+//                                                          8*1000*1000,
+//                                                          30);
 }
 
 void MainWindow::on_pushButton_4_clicked()
