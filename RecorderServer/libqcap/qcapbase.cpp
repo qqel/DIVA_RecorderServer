@@ -98,7 +98,7 @@ void QcapBase::setSystemConfig(const qcap_system_config_t &config)
 {
 
 #if defined (Q_OS_WIN32)
-    QCAP_SET_SYSTEM_DEBUG_LEVEL(0x00000000);
+    QCAP_SET_SYSTEM_DEBUG_LEVEL(0x00000001);
 #endif
 
     QCAP_SET_SYSTEM_CONFIGURATION(

@@ -11,7 +11,7 @@ class QcapHandler : public QcapBase
 public:
     explicit QcapHandler();
     ~QcapHandler();
-    void autoCreateDevice();
+    void autoCreateDevicePGM();
     /* QCAP_DEVICE */
     QcapDevice *getQcapDevice(uint32_t previewCH);
     void newQcapDevice(uint32_t previewCH);

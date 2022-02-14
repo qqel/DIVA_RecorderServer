@@ -45,7 +45,7 @@ QcapHandler::~QcapHandler()
     }
 }
 
-void QcapHandler::autoCreateDevice()
+void QcapHandler::autoCreateDevicePGM()
 {
     QtConcurrent::run([&]() {
 
@@ -61,6 +61,8 @@ void QcapHandler::autoCreateDevice()
                 m_pQcapDeviceList.append(pQcapDevice);
 
                 getQcapDevice(value)->setDevice("SC0710 PCI", 0);
+
+                setQcapPgm(0,1920,1080,60);
             }
     });
 

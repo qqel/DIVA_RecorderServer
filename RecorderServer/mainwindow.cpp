@@ -1,23 +1,10 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-static bool g_bDbg = false;
+static bool g_bMainDbg = false;
 
 void MainWindow::timerEvent( QTimerEvent *event )
 {
-    if ( event->timerId() == m_nConnectTimer )
-    {
-        if(g_bDbg) qDebug() << "client status:" << m_pClient->state();
-        if(m_bIsConnected == false)
-        {
-            if(g_bDbg) qDebug() << "try to connect server...";
-            m_pClient->open(QUrl("ws://10.10.42.70:8081"));
-        }
-        else
-        {
-            return;
-        }
-    }
-    else if( event->timerId() == m_nQcapTimer )
+    if( event->timerId() == m_nQcapTimer )
     {
         QcapDevice *pDevice = m_pQcapHandler->getQcapDevice(0);
         if(pDevice != nullptr)
@@ -38,24 +25,13 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    m_bIsConnected = false;
-
-    m_nConnectTimer = -1;
-
     m_nQcapTimer = -1;
 
     m_pQcapHandler = new QcapHandler();
 
-    m_pQcapHandler->autoCreateDevice();
+    m_pQcapHandler->autoCreateDevicePGM();
 
-    //m_pQcapHandler->
-    m_pClient = new QWebSocket;
-
-    initWebSocket();
-
-    m_pClient->setParent(this);
-
-    m_nConnectTimer = startTimer(2000);
+    m_pWebsocketHandler = new WebsocketHandler();
 
     m_nQcapTimer = startTimer(2000);
 
@@ -63,31 +39,13 @@ MainWindow::MainWindow(QWidget *parent)
 
 MainWindow::~MainWindow()
 {
-    m_pClient->close();
+    qDebug() << __func__;
+
+    delete m_pWebsocketHandler;
 
     delete m_pQcapHandler;
 
     delete ui;
-}
-
-void MainWindow::initWebSocket()
-{
-    connect(m_pClient,&QWebSocket::connected,[this](){
-        qDebug () << "IP:" << m_pClient->localAddress().toString();
-        qDebug () << "PORT:" << m_pClient->localPort();
-        qDebug()<<"connected";
-        m_bIsConnected = true;
-
-        m_pClient->sendTextMessage("connected!!");
-    });
-    connect(m_pClient,&QWebSocket::disconnected,[this](){
-        qDebug()<<"disconnected";
-        m_bIsConnected = false;
-    });
-
-    connect(m_pClient,&QWebSocket::textMessageReceived,[this](const QString &msg){
-        qDebug() << msg;
-    });
 }
 
 void MainWindow::on_pushButton_clicked()
@@ -104,8 +62,6 @@ void MainWindow::on_pushButton_2_clicked()
 void MainWindow::on_pushButton_3_clicked()
 {
     //start server
-
-    m_pQcapHandler->setQcapPgm(0,1920,1080,60);
 
     m_pQcapHandler->setQcapEncoderStartStreamWebrtcServer(0,
                                                           "127.0.0.1",

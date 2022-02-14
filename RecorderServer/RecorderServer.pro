@@ -16,10 +16,12 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     qcaphandler.cpp \
+    websockethandler.cpp
 
 HEADERS += \
     mainwindow.h \
     qcaphandler.h \
+    websockethandler.h
 
 FORMS += \
     mainwindow.ui

@@ -2,7 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QWebSocket>
+#include "websockethandler.h"
 #include "qcaphandler.h"
 
 QT_BEGIN_NAMESPACE
@@ -18,10 +18,7 @@ public:
     ~MainWindow();
 
     /* WebSocket */
-    int         m_nConnectTimer;
-    bool        m_bIsConnected;
-    QWebSocket  *m_pClient;
-    void        initWebSocket();
+    WebsocketHandler *m_pWebsocketHandler;
 
     /* QCAP */
     int         m_nQcapTimer;
