@@ -2,6 +2,9 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonDocument>
 #include "websockethandler.h"
 #include "qcaphandler.h"
 

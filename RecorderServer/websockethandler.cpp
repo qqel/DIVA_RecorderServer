@@ -1,11 +1,10 @@
 #include "websockethandler.h"
-static bool g_bWebsocketDbg = false;
+static bool g_bWebsocketDbg = true;
 
 void WebsocketHandler::timerEvent( QTimerEvent *event )
 {
     if ( event->timerId() == m_nConnectTimer )
     {
-        if(g_bWebsocketDbg) qDebug() << "client status:" << m_pClient->state();
         if(m_bIsConnected == false)
         {
             if(g_bWebsocketDbg) qDebug() << "try to connect server...";
@@ -13,9 +12,31 @@ void WebsocketHandler::timerEvent( QTimerEvent *event )
         }
         else
         {
+            if(this->m_bLoginFlag == false)
+            {
+                QJsonObject jsonSend;
+
+                jsonSend["FUNCTION"] = "SDVOEWEB_SYS_SET_LOGIN";
+                jsonSend["ACCOUNT"] = "root";
+                jsonSend["PASSWORD"] = "root";
+
+                QJsonDocument doc(jsonSend);
+                setMessage(doc.toJson());
+            }
+            else
+            {
+
+            }
             return;
         }
     }
+}
+
+void WebsocketHandler::onWebsocketReceiveMessage(const QString &msg)
+{
+    if(g_bWebsocketDbg) qDebug() << __func__;
+
+    qDebug() << msg;
 }
 
 WebsocketHandler::WebsocketHandler(QObject *parent) : QObject(parent)
@@ -23,7 +44,7 @@ WebsocketHandler::WebsocketHandler(QObject *parent) : QObject(parent)
     qDebug() << __func__;
 
     m_bIsConnected = false;
-
+    m_bLoginFlag = false;
     m_nConnectTimer = -1;
 
     m_pClient = new QWebSocket;
@@ -50,7 +71,7 @@ void WebsocketHandler::initWebSocket()
     connect(m_pClient,&QWebSocket::connected,[this](){
         qDebug () << "IP:" << m_pClient->localAddress().toString();
         qDebug () << "PORT:" << m_pClient->localPort();
-        qDebug() << "connected";
+        qDebug () << "connected";
         m_bIsConnected = true;
 
         m_pClient->sendTextMessage("connected!!");
@@ -60,7 +81,12 @@ void WebsocketHandler::initWebSocket()
         m_bIsConnected = false;
     });
 
-    connect(m_pClient,&QWebSocket::textMessageReceived,[this](const QString &msg){
-        qDebug() << msg;
-    });
+    connect(m_pClient,&QWebSocket::textMessageReceived,this,&WebsocketHandler::onWebsocketReceiveMessage);
 }
+
+void WebsocketHandler::setMessage(QString msg)
+{
+    m_pClient->sendTextMessage(msg);
+}
+
+

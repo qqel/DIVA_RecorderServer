@@ -75,4 +75,12 @@ void MainWindow::on_pushButton_3_clicked()
 void MainWindow::on_pushButton_4_clicked()
 {
     // TEST
+    QJsonObject jsonSend;
+
+    jsonSend["FUNCTION"] = "SDVOEWEB_SYS_SET_LOGIN";
+    jsonSend["ACCOUNT"] = "root";
+    jsonSend["PASSWORD"] = "root";
+
+    QJsonDocument doc(jsonSend);
+    m_pWebsocketHandler->setMessage(doc.toJson());
 }

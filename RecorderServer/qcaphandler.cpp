@@ -164,7 +164,7 @@ QRETURN on_audio_sharerecord_callback(UINT iRecNum /*IN*/, double dSampleTime /*
 }
 QcapHandler::QcapHandler(QObject *parent) : QObject(parent)
 {    
-    QCAP_CREATE( (char*) "SC0710 PCI", 0, NULL, &m_pDevice, TRUE, FALSE );
+    QCAP_CREATE( (char*) "SC0710 PCI", 0, NULL, &m_pDevice);
 
     QCAP_REGISTER_FORMAT_CHANGED_CALLBACK( m_pDevice, on_format_changed_callback, this );
 
@@ -198,6 +198,8 @@ QcapHandler::QcapHandler(QObject *parent) : QObject(parent)
 QcapHandler::~QcapHandler()
 {
     QCAP_STOP_SHARE_RECORD(SHARE_ENCODER);
+    QCAP_REGISTER_VIDEO_SHARE_RECORD_CALLBACK(SHARE_ENCODER, nullptr, nullptr );
+    QCAP_REGISTER_AUDIO_SHARE_RECORD_CALLBACK(SHARE_ENCODER, nullptr, nullptr );
 
     foreach (WebRTCHandler *pWebRTC, m_listWebRTC)
         delete pWebRTC;
@@ -205,9 +207,11 @@ QcapHandler::~QcapHandler()
     if(m_pDevice)
     {
         QCAP_STOP(m_pDevice);
-
+        QCAP_REGISTER_FORMAT_CHANGED_CALLBACK( m_pDevice, nullptr, nullptr );
+        QCAP_REGISTER_NO_SIGNAL_DETECTED_CALLBACK( m_pDevice, nullptr, nullptr );
+        QCAP_REGISTER_VIDEO_PREVIEW_CALLBACK( m_pDevice, nullptr, nullptr );
+        QCAP_REGISTER_AUDIO_PREVIEW_CALLBACK( m_pDevice, nullptr, nullptr );
         QCAP_DESTROY(m_pDevice);
-
         m_pDevice = nullptr;
     }
 }
@@ -251,13 +255,19 @@ WebRTCHandler::WebRTCHandler()
 
 WebRTCHandler::~WebRTCHandler()
 {
-    m_bIsStart = 0x00000000;
+    qDebug() << __func__;
+
+    m_bIsStart = false;
 
     if( m_pChatter ) {
 
+        QCAP_REGISTER_WEBRTC_CHATROOM_LOGIN_CALLBACK( m_pChatter, nullptr, nullptr );
+        QCAP_REGISTER_WEBRTC_CHATROOM_LOGOUT_CALLBACK( m_pChatter, nullptr, nullptr );
+        QCAP_REGISTER_WEBRTC_PEER_CONNECTED_CALLBACK( m_pChatter, nullptr, nullptr );
+        QCAP_REGISTER_WEBRTC_PEER_DISCONNECTED_CALLBACK( m_pChatter, nullptr, nullptr );
+        QCAP_STOP_WEBRTC_CHAT(m_pChatter);
         QCAP_DESTROY_WEBRTC_CHATTER( m_pChatter );
-
-        m_pChatter= NULL;
+        m_pChatter= nullptr;
     }
 
     if( m_pSender ) {
@@ -266,7 +276,7 @@ WebRTCHandler::~WebRTCHandler()
 
         QCAP_DESTROY_BROADCAST_SERVER( m_pSender );
 
-        m_pSender = NULL;
+        m_pSender = nullptr;
     }
 }
 
