@@ -16,6 +16,8 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    ui->lineEdit_peerId->setText("1");
+
     m_nQcapTimer = -1;
 
     m_pQcapHandler = new QcapHandler();
@@ -40,16 +42,23 @@ MainWindow::~MainWindow()
 void MainWindow::on_pushButton_clicked()
 {
     // start chat
+    qDebug() << __func__;
+    ULONG peer_id = ui->lineEdit_peerId->text().toLong();
+    m_pQcapHandler->setChatter(peer_id);
 }
 
 void MainWindow::on_pushButton_2_clicked()
 {
     // enum
+    qDebug() << "user total:" << m_pQcapHandler->m_listWebRTC.count();
+    m_pQcapHandler->m_listWebRTC.at(0)->enumUser();
 }
 
 void MainWindow::on_pushButton_3_clicked()
 {
     //start server
+
+    m_pQcapHandler->addNewChatter("127.0.0.1", 8888, "test_client");
 
 //    m_pQcapHandler->setQcapEncoderStartStreamWebrtcServer(0,
 //                                                          "127.0.0.1",

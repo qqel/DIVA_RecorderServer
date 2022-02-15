@@ -1,5 +1,5 @@
 #include "websockethandler.h"
-static bool g_bWebsocketDbg = true;
+static bool g_bWebsocketDbg = false;
 
 void WebsocketHandler::timerEvent( QTimerEvent *event )
 {

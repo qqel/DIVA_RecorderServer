@@ -5,17 +5,19 @@
 #include <Windows.h>
 #include "QCAP.H"
 
-class WebRTC{
+class WebRTCHandler{
 public:
-    WebRTC();
-    ~WebRTC();
+    WebRTCHandler();
+    ~WebRTCHandler();
 public:
     PVOID   m_pChatter;
     PVOID   m_pSender;
-    ULONG   m_nIsStart;
+    BOOL    m_bIsStart;
     QString m_strChatterName;
     ULONG   m_nChatter_id;
     void    setInit(QString ip, ULONG port, QString name);
+    void    setChatter(ULONG peer_id);
+    void    enumUser();
 };
 
 class QcapHandler : public QObject
@@ -34,8 +36,9 @@ public:
     ULONG			m_nDeviceAudioBitsPerSample;
     ULONG			m_nDeviceAudioSampleFrequency;
 
-    QList<WebRTC*>  m_listWebRTC;
+    QList<WebRTCHandler*>  m_listWebRTC;
     void            addNewChatter(QString ip, ULONG port, QString name);
+    void            setChatter(ULONG peer_id);
 
 signals:
 
