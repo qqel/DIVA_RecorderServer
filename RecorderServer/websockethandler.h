@@ -13,11 +13,13 @@ class WebsocketHandler : public QObject
 public:
     explicit WebsocketHandler(QObject *parent = nullptr);
     ~WebsocketHandler();
-    /* WebSocket */
+    void        setServerProperty(QString strServerURL);
+    int         m_nSessid;
     int         m_nConnectTimer;
     bool        m_bIsConnected;   
+    QString     m_strServerURL;
     QWebSocket  *m_pClient;
-    bool        m_bLoginFlag;
+    bool        m_bIsLogin;
     void        initWebSocket();    
     void        setMessage(QString msg);
 signals:

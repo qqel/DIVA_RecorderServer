@@ -1,5 +1,6 @@
 #include "qcaphandler.h"
 #include <QDebug>
+#define CAHTROOM_MAXIMUN 5
 #define SHARE_ENCODER 0
 #define ENCODER_WIDTH 1920
 #define ENCODER_HEIGHT 1080
@@ -22,11 +23,11 @@ QRETURN webrtc_logout_callback( PVOID pChatter /*IN*/, ULONG nPeerID /*IN*/,  PV
 QRETURN webrtc_peer_connect_callback( PVOID pChatter /*IN*/, ULONG nPeerID /*IN*/, QRESULT nConnectionStatus /*IN*/, PVOID pUserData /*IN*/ )
 {
     WebRTCHandler* pWebRTC =  (WebRTCHandler * ) pUserData;
-    if( pWebRTC->m_bIsStart == false ) {
+    if( pWebRTC->m_bIsUsed == false ) {
 
         qDebug ("webrtc_peer_connected_callback()  %u ", nPeerID);
 
-        pWebRTC->m_bIsStart = true;
+        pWebRTC->m_bIsUsed = true;
     }
 
     return QCAP_RT_OK;
@@ -35,11 +36,11 @@ QRETURN webrtc_peer_connect_callback( PVOID pChatter /*IN*/, ULONG nPeerID /*IN*
 QRETURN webrtc_peer_disconnect_callback( PVOID pChatter /*IN*/, ULONG nPeerID /*IN*/, PVOID pUserData /*IN*/ )
 {
     WebRTCHandler* pWebRTC =  (WebRTCHandler * ) pUserData;
-    if( pWebRTC->m_bIsStart == true ) {
+    if( pWebRTC->m_bIsUsed == true ) {
 
         qDebug ("webrtc_peer_disconnected_callback()  %u ", nPeerID);
 
-        pWebRTC->m_bIsStart = false;
+        pWebRTC->m_bIsUsed = false;
     }
 
     return QCAP_RT_OK;
@@ -123,15 +124,7 @@ QRETURN on_video_sharerecord_callback(UINT iRecNum /*IN*/, double dSampleTime /*
 
     for(int i=0; i<m_pMainDialog->m_listWebRTC.count(); i++)
     {
-        if( m_pMainDialog->m_listWebRTC.at(i)->m_bIsStart >= 0x00000001 ) {
-
-            char buffer[64];
-
-            sprintf( buffer, "%s -  %d", m_pMainDialog->m_listWebRTC.at(i)->m_strChatterName.toLocal8Bit().data(), count);
-
-            count ++ ;
-
-            QCAP_SET_OSD_TEXT( m_pMainDialog->m_pDevice, 0, 0, 0, 0, 0, buffer, (char*)"Arial", QCAP_FONT_STYLE_BOLD, 72, 0xFFFFFFFF, 0xFFFF0000, 0xFF, 0, 0 );
+        if( m_pMainDialog->m_listWebRTC.at(i)->m_bIsUsed == true ) {
 
             QCAP_SET_VIDEO_BROADCAST_SERVER_COMPRESSION_BUFFER( m_pMainDialog->m_listWebRTC.at(i)->m_pSender,
                                                                 0,
@@ -151,7 +144,7 @@ QRETURN on_audio_sharerecord_callback(UINT iRecNum /*IN*/, double dSampleTime /*
 
     for(int i=0; i<m_pMainDialog->m_listWebRTC.count(); i++)
     {
-        if( m_pMainDialog->m_listWebRTC.at(i)->m_bIsStart >= 0x00000001 ) {
+        if( m_pMainDialog->m_listWebRTC.at(i)->m_bIsUsed == true ) {
 
             QCAP_SET_AUDIO_BROADCAST_SERVER_COMPRESSION_BUFFER( m_pMainDialog->m_listWebRTC.at(i)->m_pSender,
                                                                   0,
@@ -162,8 +155,9 @@ QRETURN on_audio_sharerecord_callback(UINT iRecNum /*IN*/, double dSampleTime /*
 
     return QCAP_RT_OK;
 }
+
 QcapHandler::QcapHandler(QObject *parent) : QObject(parent)
-{    
+{
     QCAP_CREATE( (char*) "SC0710 PCI", 0, NULL, &m_pDevice);
 
     QCAP_REGISTER_FORMAT_CHANGED_CALLBACK( m_pDevice, on_format_changed_callback, this );
@@ -193,13 +187,17 @@ QcapHandler::QcapHandler(QObject *parent) : QObject(parent)
     QCAP_REGISTER_AUDIO_SHARE_RECORD_CALLBACK(SHARE_ENCODER, on_audio_sharerecord_callback, this);
 
     QCAP_START_SHARE_RECORD(SHARE_ENCODER, (char*)"", QCAP_RECORD_FLAG_ENCODE);
+
+
+    for(int i=0; i< CAHTROOM_MAXIMUN; i++)
+    {
+        addNewChatter("127.0.0.1", 8888+i, QString::number(i));
+    }
 }
 
 QcapHandler::~QcapHandler()
 {
     QCAP_STOP_SHARE_RECORD(SHARE_ENCODER);
-    QCAP_REGISTER_VIDEO_SHARE_RECORD_CALLBACK(SHARE_ENCODER, nullptr, nullptr );
-    QCAP_REGISTER_AUDIO_SHARE_RECORD_CALLBACK(SHARE_ENCODER, nullptr, nullptr );
 
     foreach (WebRTCHandler *pWebRTC, m_listWebRTC)
         delete pWebRTC;
@@ -207,10 +205,6 @@ QcapHandler::~QcapHandler()
     if(m_pDevice)
     {
         QCAP_STOP(m_pDevice);
-        QCAP_REGISTER_FORMAT_CHANGED_CALLBACK( m_pDevice, nullptr, nullptr );
-        QCAP_REGISTER_NO_SIGNAL_DETECTED_CALLBACK( m_pDevice, nullptr, nullptr );
-        QCAP_REGISTER_VIDEO_PREVIEW_CALLBACK( m_pDevice, nullptr, nullptr );
-        QCAP_REGISTER_AUDIO_PREVIEW_CALLBACK( m_pDevice, nullptr, nullptr );
         QCAP_DESTROY(m_pDevice);
         m_pDevice = nullptr;
     }
@@ -222,26 +216,68 @@ void QcapHandler::addNewChatter(QString ip, ULONG port, QString name)
 
     pWebRTC = new WebRTCHandler();
 
-    pWebRTC->setInit("127.0.0.1", 8888, "test_client");
+    QString strChatterName = "Rec_" + name;
+
+    pWebRTC->setInit(ip, port, strChatterName);
 
     m_listWebRTC.append(pWebRTC);
 }
 
-void QcapHandler::setChatter(ULONG peer_id)
+int QcapHandler::getChatRoomPort()
 {
-    qDebug() << __func__ << m_listWebRTC.count();
-
+    int nPortOutput = -1;
     foreach(WebRTCHandler *pWebRTC, m_listWebRTC)
     {
-        if(pWebRTC->m_bIsStart == true)
+        if(pWebRTC->m_bIsUsed == false)
         {
-            pWebRTC->setChatter(peer_id);
-        }
-        else
-        {
-            qDebug() << "this chat is using...";
+            nPortOutput = pWebRTC->m_nPort;
+            break;
         }
     }
+
+    nPortOutput == -1 ? qDebug() << "all chat room will be used" : qDebug() << "using port:" << nPortOutput;
+
+    return nPortOutput;
+}
+
+void QcapHandler::setChatter(ULONG peer_id, ULONG port)
+{
+    qDebug() << __func__ << peer_id << port;
+    qDebug() << "[FINN] total webrtc handler:" <<  m_listWebRTC.count();
+
+    int nUsedCount = 0;
+    foreach(WebRTCHandler *pWebRTC, m_listWebRTC)
+    {
+        if(pWebRTC->m_nPort == port)
+        {
+            if(pWebRTC->m_bIsUsed == false)
+            {
+                qDebug() << "set chatter success!!!" ;
+                pWebRTC->setChatter(peer_id);
+
+                break;
+            }
+            else
+            {
+                nUsedCount ++;
+                qDebug() << "this chat is using...";
+            }
+        }
+    }
+}
+
+QList<WebRTCHandler *> QcapHandler::getWebrtcList()
+{
+    qDebug() << " -------------start enum chat rooms--------------";
+    int i=0;
+    foreach(WebRTCHandler *pWebrtcObj, m_listWebRTC)
+    {
+        qDebug() << "room_" << i++ << " port:" << pWebrtcObj->m_nPort << " peer_id:" << pWebrtcObj->m_nChatter_id << " is Used:" << pWebrtcObj->m_bIsUsed;
+    }
+
+    qDebug() << " -------------stop enum chat rooms--------------";
+
+    return this->m_listWebRTC;
 }
 
 WebRTCHandler::WebRTCHandler()
@@ -249,7 +285,7 @@ WebRTCHandler::WebRTCHandler()
     this->m_pChatter        = nullptr;
     this->m_pSender         = nullptr;
     this->m_nChatter_id     = -1;
-    this->m_bIsStart        = false;
+    this->m_bIsUsed         = false;
     this->m_strChatterName  = "";
 }
 
@@ -257,14 +293,9 @@ WebRTCHandler::~WebRTCHandler()
 {
     qDebug() << __func__;
 
-    m_bIsStart = false;
+    m_bIsUsed = false;
 
     if( m_pChatter ) {
-
-        QCAP_REGISTER_WEBRTC_CHATROOM_LOGIN_CALLBACK( m_pChatter, nullptr, nullptr );
-        QCAP_REGISTER_WEBRTC_CHATROOM_LOGOUT_CALLBACK( m_pChatter, nullptr, nullptr );
-        QCAP_REGISTER_WEBRTC_PEER_CONNECTED_CALLBACK( m_pChatter, nullptr, nullptr );
-        QCAP_REGISTER_WEBRTC_PEER_DISCONNECTED_CALLBACK( m_pChatter, nullptr, nullptr );
         QCAP_STOP_WEBRTC_CHAT(m_pChatter);
         QCAP_DESTROY_WEBRTC_CHATTER( m_pChatter );
         m_pChatter= nullptr;
@@ -278,10 +309,16 @@ WebRTCHandler::~WebRTCHandler()
 
         m_pSender = nullptr;
     }
+
+    QCAP_DESTROY_WEBRTC_CHATROOM( m_pChatRoomDev );
 }
 
 void WebRTCHandler::setInit(QString ip, ULONG port, QString name)
 {
+    this->m_nPort = port;
+
+    QCAP_CREATE_WEBRTC_CHATROOM( port, &m_pChatRoomDev );
+
     QCAP_CREATE_WEBRTC_CHATTER( ip.toLocal8Bit().data(), port, name.toLocal8Bit().data(), &m_pChatter , &m_nChatter_id);
 
     if ( m_pChatter == nullptr ) {
@@ -299,7 +336,9 @@ void WebRTCHandler::setInit(QString ip, ULONG port, QString name)
 
     if( m_pSender == nullptr ) {
 
-        QCAP_CREATE_WEBRTC_SENDER( m_pChatter, 0, 1, &m_pSender );
+        static int count = 0;
+
+        QCAP_CREATE_WEBRTC_SENDER( m_pChatter, count++, 1, &m_pSender );
 
         if( m_pSender ) {
 
@@ -326,10 +365,8 @@ void WebRTCHandler::setInit(QString ip, ULONG port, QString name)
                                                       16,
                                                       48000 );
 
-            QCAP_START_BROADCAST_SERVER( m_pSender );
+            qDebug() << QCAP_START_BROADCAST_SERVER( m_pSender );
         }
-
-        m_bIsStart = true;
     }
 }
 

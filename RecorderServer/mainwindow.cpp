@@ -18,6 +18,15 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->lineEdit_peerId->setText("1");
 
+    ui->lineEdit_peerName->setText("rec0");
+
+    QList<QHostAddress> list = QNetworkInterface::allAddresses();
+    foreach (QHostAddress address, list)
+    {
+        if(address.protocol() == QAbstractSocket::IPv4Protocol)//我們使用IPv4地址
+            qDebug() << address.toString();
+    }
+
     m_nQcapTimer = -1;
 
     m_pQcapHandler = new QcapHandler();
@@ -39,37 +48,32 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::on_pushButton_Preview_clicked()
+{
+    // step1. WEB send button signal to CTRL to REC
+    // setp2. REC send port to CTRL to WEB
+    ui->lineEdit_port->setText(QString::number(m_pQcapHandler->getChatRoomPort()));
+}
+
 void MainWindow::on_pushButton_clicked()
 {
-    // start chat
-    qDebug() << __func__;
+    // step3. WEB send peer_id and port to CTRL to REC
+    // step4. REC start cahtter
+
     ULONG peer_id = ui->lineEdit_peerId->text().toLong();
-    m_pQcapHandler->setChatter(peer_id);
+    m_pQcapHandler->setChatter(peer_id, ui->lineEdit_port->text().toUInt());
 }
 
 void MainWindow::on_pushButton_2_clicked()
 {
     // enum
-    qDebug() << "user total:" << m_pQcapHandler->m_listWebRTC.count();
-    m_pQcapHandler->m_listWebRTC.at(0)->enumUser();
+    m_pQcapHandler->getWebrtcList();
 }
 
 void MainWindow::on_pushButton_3_clicked()
 {
     //start server
 
-    m_pQcapHandler->addNewChatter("127.0.0.1", 8888, "test_client");
-
-//    m_pQcapHandler->setQcapEncoderStartStreamWebrtcServer(0,
-//                                                          "127.0.0.1",
-//                                                          8888,
-//                                                          "client0",
-//                                                          QCAP_ENCODER_TYPE_INTEL_MEDIA_SDK,
-//                                                          QCAP_ENCODER_FORMAT_H264,
-//                                                          QCAP_RECORD_MODE_CBR,
-//                                                          0,
-//                                                          8*1000*1000,
-//                                                          30);
 }
 
 void MainWindow::on_pushButton_4_clicked()
@@ -84,3 +88,5 @@ void MainWindow::on_pushButton_4_clicked()
     QJsonDocument doc(jsonSend);
     m_pWebsocketHandler->setMessage(doc.toJson());
 }
+
+

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>478</width>
-    <height>307</height>
+    <width>650</width>
+    <height>416</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,10 +17,10 @@
    <widget class="QPushButton" name="pushButton">
     <property name="geometry">
      <rect>
-      <x>119</x>
-      <y>220</y>
-      <width>51</width>
-      <height>31</height>
+      <x>270</x>
+      <y>320</y>
+      <width>80</width>
+      <height>16</height>
      </rect>
     </property>
     <property name="text">
@@ -43,10 +43,10 @@
    <widget class="QPushButton" name="pushButton_3">
     <property name="geometry">
      <rect>
-      <x>50</x>
-      <y>90</y>
-      <width>141</width>
-      <height>51</height>
+      <x>150</x>
+      <y>110</y>
+      <width>81</width>
+      <height>41</height>
      </rect>
     </property>
     <property name="text">
@@ -56,8 +56,8 @@
    <widget class="QPushButton" name="pushButton_4">
     <property name="geometry">
      <rect>
-      <x>90</x>
-      <y>160</y>
+      <x>250</x>
+      <y>60</y>
       <width>80</width>
       <height>16</height>
      </rect>
@@ -69,11 +69,122 @@
    <widget class="QLineEdit" name="lineEdit_peerId">
     <property name="geometry">
      <rect>
-      <x>40</x>
-      <y>230</y>
+      <x>310</x>
+      <y>270</y>
       <width>71</width>
       <height>20</height>
      </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_peerName">
+    <property name="geometry">
+     <rect>
+      <x>70</x>
+      <y>120</y>
+      <width>71</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_port">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>220</y>
+      <width>71</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label">
+    <property name="geometry">
+     <rect>
+      <x>270</x>
+      <y>230</y>
+      <width>31</width>
+      <height>8</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Port</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>270</x>
+      <y>280</y>
+      <width>31</width>
+      <height>8</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>peer_id</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_3">
+    <property name="geometry">
+     <rect>
+      <x>270</x>
+      <y>160</y>
+      <width>151</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>step1. WEB send button signal to CTRL to REC</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_4">
+    <property name="geometry">
+     <rect>
+      <x>270</x>
+      <y>200</y>
+      <width>151</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>setp2. REC send port to CTRL to WEB</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_5">
+    <property name="geometry">
+     <rect>
+      <x>270</x>
+      <y>250</y>
+      <width>171</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>step3. WEB send peer_id and port to CTRL to REC</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_6">
+    <property name="geometry">
+     <rect>
+      <x>270</x>
+      <y>300</y>
+      <width>161</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>// step4. REC start cahtter</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="pushButton_Preview">
+    <property name="geometry">
+     <rect>
+      <x>270</x>
+      <y>180</y>
+      <width>41</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Preview</string>
     </property>
    </widget>
   </widget>
@@ -82,7 +193,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>478</width>
+     <width>650</width>
      <height>21</height>
     </rect>
    </property>

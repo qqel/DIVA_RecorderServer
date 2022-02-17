@@ -5,6 +5,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QNetworkInterface>
 #include "websockethandler.h"
 #include "qcaphandler.h"
 
@@ -38,6 +39,8 @@ private slots:
     void on_pushButton_3_clicked();
 
     void on_pushButton_4_clicked();
+
+    void on_pushButton_Preview_clicked();
 
 private:
     Ui::MainWindow *ui;

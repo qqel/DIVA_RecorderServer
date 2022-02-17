@@ -10,10 +10,12 @@ public:
     WebRTCHandler();
     ~WebRTCHandler();
 public:
+    PVOID   m_pChatRoomDev;
     PVOID   m_pChatter;
     PVOID   m_pSender;
-    BOOL    m_bIsStart;
+    BOOL    m_bIsUsed;
     QString m_strChatterName;
+    ULONG   m_nPort;
     ULONG   m_nChatter_id;
     void    setInit(QString ip, ULONG port, QString name);
     void    setChatter(ULONG peer_id);
@@ -26,7 +28,6 @@ class QcapHandler : public QObject
 public:
     explicit QcapHandler(QObject *parent = nullptr);
     ~QcapHandler();
-
     PVOID			m_pDevice;
     ULONG			m_nDeviceVideoWidth;
     ULONG			m_nDeviceVideoHeight;
@@ -38,7 +39,9 @@ public:
 
     QList<WebRTCHandler*>  m_listWebRTC;
     void            addNewChatter(QString ip, ULONG port, QString name);
-    void            setChatter(ULONG peer_id);
+    int             getChatRoomPort();
+    void            setChatter(ULONG peer_id, ULONG port);
+    QList<WebRTCHandler*> getWebrtcList();
 
 signals:
 
